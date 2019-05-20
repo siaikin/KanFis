@@ -1,0 +1,40 @@
+{
+  "manifest_version": 2,
+  "name": "天气预报",
+  "version": "1.0",
+  "description": "查看未来两周的天气情况",
+  "icons": {
+    "16": "images/icon.png"
+  },
+  "browser_action": {
+    "default_icon": {
+      "19": "images/icon.png",
+      "38": "images/icon.png"
+    },
+    "default_title": "天气预报",
+    "default_popup": "popup.html"
+  },
+  "options_page": "option.html",
+  "background": {
+    "scripts": [
+      "js/background.js"
+    ]
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["js/contentScripts.js"]
+    }
+  ],
+  "permissions": [
+    "http://sneezryworks.sinaapp.com/ip.php",
+    "tabs",
+    "<all_urls>"
+  ],
+  "omnibox": {
+    "keyword": "KanFis"
+  },
+  "web_accessible_resources": [
+    "js/*"
+  ]
+}

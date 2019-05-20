@@ -1,0 +1,9 @@
+body {
+    width: 200px;
+    height: 400px;
+}
+
+input[type=radio] {
+    vertical-align: middle;
+    margin-top: -2px;
+}
