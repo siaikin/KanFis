@@ -2,7 +2,7 @@ import {Message, MessageType} from "../module/message.js";
 import {chromeAPI} from "../module/chromeAPI";
 
 const floatBoxModel = document.createElement('ASIDE'), floatBoxButtonModel = document.createElement('BUTTON');
-floatBoxModel.style.cssText = 'position: absolute; top: 0;right: 0; transform: translateX(120%);font-size: 12px;line-height: 0;z-index: 99999;background-color: lightgray;width: 122px;height: 32px;box-sizing: border-box;padding: 5px;';
+floatBoxModel.style.cssText = 'position: absolute; top: 0;right: 0; transform: translateX(-120%);font-size: 12px;line-height: 0;z-index: 99999;background-color: lightgray;width: 122px;height: 32px;box-sizing: border-box;padding: 5px;';
 floatBoxButtonModel.style.cssText = 'margin: 0px 2px;padding: 2px 8px;border: 0;height: 100%;';
 
 // const storage = chrome.storage.local;

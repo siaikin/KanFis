@@ -1,50 +1,55 @@
 const REGEXP = {
     whitespace: /\s/,
-    attribute: /[a-zA-Z0-9\-]+=[^\s>]+/g
+    attribute: /[a-zA-Z0-9\-]+=[^\s>]+/g,
+    escapeChar: /([\\`*_{}\[\]()#+\-.!])/g
 };
 const EL_TYPE = {
     'rootNode': -4,
     // 无法识别的标签，默认有闭合标签，数值为2的倍数
     'htmlNode': -2,
-    // 文本元素
-    'textNode': 0,
+    'all_element': 0,
     // 双标签（tag）元素
     'a': 2,
     'h': 4,
     'p': 6,
-    'em': 62,
-    'li': 8,
-    'ol': 10,
-    'ul': 12,
-    'div': 20,
-    'pre': 22,
-    'code': 24,
-    'span': 26,
-    'audio': 28,
-    'aside': 30,
-    'video': 32,
-    'strong': 40,
-    'script': 42,
-    'button': 44,
-    'article': 46,
-    'blockquote': 48,
-    'h1': 50,
-    'h2': 52,
-    'h3': 54,
-    'h4': 56,
-    'h5': 58,
-    'h6': 60,
+    'em': 8,
+    'li': 10,
+    'ol': 12,
+    'ul': 14,
+    'div': 16,
+    'pre': 18,
+    'code': 20,
+    'span': 22,
+    'audio': 24,
+    'aside': 26,
+    'video': 28,
+    'strong': 30,
+    'script': 32,
+    'button': 34,
+    'article': 36,
+    'blockquote': 38,
+    'h1': 40,
+    'h2': 42,
+    'h3': 44,
+    'h4': 46,
+    'h5': 48,
+    'h6': 50,
+    // 文本元素
+    'textNode': 1,
     // 单标签（tag）元素
-    'br': 1,
-    'hr': 3,
-    'img': 5,
-    'link': 7,
-    '!--': 9,
-    'input': 11
+    'br': 3,
+    'hr': 5,
+    'img': 7,
+    'link': 9,
+    '!--': 11,
+    'input': 13
 };
 const DEFAULT_RULE = {
     defaultToken: {
-        filterRule: [],
+        filterRule: {
+            attribute: [],
+            children: [EL_TYPE['all_element']]
+        },
         convertRule: function (node) {
             return '';
         },
@@ -53,7 +58,10 @@ const DEFAULT_RULE = {
         }
     },
     doubleToken: {
-        filterRule: [],
+        filterRule: {
+            attribute: [],
+            children: [EL_TYPE['all_element']]
+        },
         convertRule: function (node) {
             return '';
         },
@@ -62,7 +70,10 @@ const DEFAULT_RULE = {
         }
     },
     signleToken: {
-        filterRule: [],
+        filterRule: {
+            attribute: [],
+            children: []
+        },
         convertRule: function (node) {
             return '';
         },
@@ -75,46 +86,65 @@ const TOKEN_RULE = {
     // // 无法识别的标签，默认有闭合标签，数值为2的倍数
     [EL_TYPE['rootNode']]: DEFAULT_RULE.doubleToken,
     [EL_TYPE['htmlNode']]: {
-        filterRule: [],
+        filterRule: {
+            attribute: [],
+            children: []
+        },
         convertRule: function (node) {
-            return node.token;
+            return `<${node.tag}>`;
         },
         endRule: function (node) {
             const token = node.token;
-            return `</${token.slice(1, token.length - 1)}>\n`;
+            return `</${node.tag}>\n`;
         }
     },
     [EL_TYPE['textNode']]: {
-        filterRule: [],
+        filterRule: {
+            attribute: [],
+            children: []
+        },
         convertRule: function (node) {
-            return node.token;
+            const content = node.content;
+            // 转换需要转义的字符
+            // return (node.isHTML || node.isCode) ? content : content.replace(REGEXP.escapeChar, '\\$1');
+            return content;
         },
         endRule: function (node) {
-            return '';
+            return ``;
         }
     },
     [EL_TYPE['a']]: {
-        filterRule: ['href', 'title'],
-        convertRule: function (node) {
+        filterRule: {
+            attribute: ['href', 'title'],
+            children: [EL_TYPE['all_element']]
+        },
+        convertRule: function () {
             return '[';
         },
         endRule: function (node) {
             const attr = node.attribute;
-            return `](${attr['href']} "${attr['title']}")`;
+            return `](${attr['href'] || ''}` + (attr['title'] ? ` "${attr['title']}"` : ``) + `)`;
         }
     },
     [EL_TYPE['h']]: DEFAULT_RULE.doubleToken,
     [EL_TYPE['p']]: {
-        filterRule: [],
+        filterRule: {
+            attribute: [],
+            children: [EL_TYPE['all_element']]
+        },
         convertRule: function (node) {
             return `${node.parentNode.type === EL_TYPE['blockquote'] ? '> ' : ''}`;
         },
         endRule: function (node) {
-            return `${node.parentNode.type === EL_TYPE['rootNode'] ? '\n\n' : ''}`;
+            // return `${node.parentNode.type === EL_TYPE['blockquote'] ? '\n' : '\n\n'}`;
+            return `\n\n`;
         }
     },
     [EL_TYPE['em']]: {
-        filterRule: [],
+        filterRule: {
+            attribute: [],
+            children: [EL_TYPE['all_element']]
+        },
         convertRule: function (node) {
             return `*`;
         },
@@ -123,7 +153,10 @@ const TOKEN_RULE = {
         }
     },
     [EL_TYPE['li']]: {
-        filterRule: [],
+        filterRule: {
+            attribute: [],
+            children: [EL_TYPE['all_element']]
+        },
         convertRule: function (node) {
             return `1. `;
         },
@@ -132,7 +165,10 @@ const TOKEN_RULE = {
         }
     },
     [EL_TYPE['ol']]: {
-        filterRule: [],
+        filterRule: {
+            attribute: [],
+            children: [EL_TYPE['all_element']]
+        },
         convertRule: function (node) {
             return `${node.parentNode.type === EL_TYPE['li'] ? '\n' : ''}`;
         },
@@ -142,7 +178,10 @@ const TOKEN_RULE = {
         }
     },
     [EL_TYPE['ul']]: {
-        filterRule: [],
+        filterRule: {
+            attribute: [],
+            children: [EL_TYPE['all_element']]
+        },
         convertRule: function (node) {
             return `${node.parentNode.type === EL_TYPE['li'] ? '\n' : ''}`;
         },
@@ -152,9 +191,23 @@ const TOKEN_RULE = {
         }
     },
     [EL_TYPE['div']]: DEFAULT_RULE.defaultToken,
-    [EL_TYPE['pre']]: DEFAULT_RULE.defaultToken,
+    [EL_TYPE['pre']]: {
+        filterRule: {
+            attribute: [],
+            children: [EL_TYPE['code']]
+        },
+        convertRule: function (node) {
+            return ``;
+        },
+        endRule: function (node) {
+            return `\n`;
+        }
+    },
     [EL_TYPE['code']]: {
-        filterRule: [],
+        filterRule: {
+            attribute: [],
+            children: [EL_TYPE['all_element']]
+        },
         convertRule: function (node) {
             return `${node.parentNode.type === EL_TYPE['pre'] ? '```\n' : '`'}`;
         },
@@ -167,7 +220,10 @@ const TOKEN_RULE = {
     [EL_TYPE['aside']]: DEFAULT_RULE.doubleToken,
     [EL_TYPE['video']]: DEFAULT_RULE.doubleToken,
     [EL_TYPE['strong']]: {
-        filterRule: [],
+        filterRule: {
+            attribute: [],
+            children: [EL_TYPE['all_element']]
+        },
         convertRule: function (node) {
             return `**`;
         },
@@ -179,7 +235,10 @@ const TOKEN_RULE = {
     [EL_TYPE['button']]: DEFAULT_RULE.doubleToken,
     [EL_TYPE['article']]: DEFAULT_RULE.doubleToken,
     [EL_TYPE['blockquote']]: {
-        filterRule: [],
+        filterRule: {
+            attribute: [],
+            children: [EL_TYPE['all_element']]
+        },
         convertRule: function (node) {
             return ``;
         },
@@ -188,7 +247,10 @@ const TOKEN_RULE = {
         }
     },
     [EL_TYPE['h1']]: {
-        filterRule: [],
+        filterRule: {
+            attribute: [],
+            children: [EL_TYPE['all_element']]
+        },
         convertRule: function (node) {
             return `# `;
         },
@@ -197,7 +259,10 @@ const TOKEN_RULE = {
         }
     },
     [EL_TYPE['h2']]: {
-        filterRule: [],
+        filterRule: {
+            attribute: [],
+            children: [EL_TYPE['all_element']]
+        },
         convertRule: function (node) {
             return `## `;
         },
@@ -206,7 +271,10 @@ const TOKEN_RULE = {
         }
     },
     [EL_TYPE['h3']]: {
-        filterRule: [],
+        filterRule: {
+            attribute: [],
+            children: [EL_TYPE['all_element']]
+        },
         convertRule: function (node) {
             return `### `;
         },
@@ -215,7 +283,10 @@ const TOKEN_RULE = {
         }
     },
     [EL_TYPE['h4']]: {
-        filterRule: [],
+        filterRule: {
+            attribute: [],
+            children: [EL_TYPE['all_element']]
+        },
         convertRule: function (node) {
             return `#### `;
         },
@@ -224,7 +295,10 @@ const TOKEN_RULE = {
         }
     },
     [EL_TYPE['h5']]: {
-        filterRule: [],
+        filterRule: {
+            attribute: [],
+            children: [EL_TYPE['all_element']]
+        },
         convertRule: function (node) {
             return `##### `;
         },
@@ -233,7 +307,10 @@ const TOKEN_RULE = {
         }
     },
     [EL_TYPE['h6']]: {
-        filterRule: [],
+        filterRule: {
+            attribute: [],
+            children: [EL_TYPE['all_element']]
+        },
         convertRule: function (node) {
             return `###### `;
         },
@@ -242,16 +319,22 @@ const TOKEN_RULE = {
         }
     },
     [EL_TYPE['br']]: {
-        filterRule: [],
+        filterRule: {
+            attribute: [],
+            children: []
+        },
         convertRule: function (node) {
-            return `  \n`;
+            return `\n`;
         },
         endRule: function (node) {
             return ``;
         }
     },
     [EL_TYPE['hr']]: {
-        filterRule: [],
+        filterRule: {
+            attribute: [],
+            children: []
+        },
         convertRule: function (node) {
             return `---\n`;
         },
@@ -260,12 +343,16 @@ const TOKEN_RULE = {
         }
     },
     [EL_TYPE['img']]: {
-        filterRule: ['src'],
+        filterRule: {
+            attribute: ['src', 'title'],
+            children: []
+        },
         convertRule: function (node) {
             return '![';
         },
         endRule: function (node) {
-            return `](${node.attribute['src']})\n`;
+            const attr = node.attribute;
+            return `](${attr['src'] || ''} "${attr['title'] || ''}")\n`;
         }
     },
     [EL_TYPE['link']]: DEFAULT_RULE.doubleToken,

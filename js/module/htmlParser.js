@@ -2,6 +2,9 @@
 
 import {REGEXP, EL_TYPE, TOKEN_RULE} from "./htmlParserConfig";
 import {TablePlugin} from "./plugins/table";
+import {Lexer} from "./lexer";
+import {Parser} from "./parser";
+import {VDOMTree} from "./vdomt";
 
 function HTMLParser() {
     this.HTML = '';
@@ -27,15 +30,20 @@ Object.defineProperties(HTMLParser.prototype, {
 
 function toMarkdown(htmlStr) {
     this.HTML = trim(htmlStr);
-    this.DOMTree = this.buildDOMTree(this.HTML);
-    console.log(this.HTML);
-    // console.log(this.DOMTree);
-    this.convertDOMTree(this.DOMTree);
+    const lexer = new Lexer(), parser = new Parser(), vdomtree = new VDOMTree();
+    let token = lexer.analysis(this.HTML);
+    token = parser.analysis(token);
+    const result = vdomtree.build(token);
+    console.log(result);
+    // this.DOMTree = this.buildDOMTree(this.HTML);
+    // console.log(this.HTML);
+    // // console.log(this.DOMTree);
+    // this.convertDOMTree(this.DOMTree);
 }
 
 function buildDOMTree(str) {
     console.time('buildNodeTree');
-    const stack = [], root = {token: '', type: EL_TYPE['rootNode'], isHTML: false};
+    const stack = [], root = {token: '', type: EL_TYPE['rootNode'], isHTML: false, isCode: false};
     let curNode = root, tempNode = curNode, start = 0, end = 0, tag, len = str.length - 1;
     let tempStr, typeNum;
     while (end < len) {
@@ -48,7 +56,9 @@ function buildDOMTree(str) {
                 if (!curNode.children) { curNode.children = []; }
                 curNode.children.push({
                     token: curNode.type === EL_TYPE['code'] ? str.slice(end + 1, start) : tempStr,
-                    type: EL_TYPE['textNode']
+                    type: EL_TYPE['textNode'],
+                    isHTML: curNode.isHTML,
+                    isCode: curNode.isCode,
                 })
             }
         }
@@ -78,6 +88,7 @@ function buildDOMTree(str) {
                 token: `<${tag}>`,
                 type: typeNum,
                 isHTML: curNode.isHTML || typeNum === EL_TYPE['htmlNode'],
+                isCode: curNode.isCode || typeNum === EL_TYPE['code'],
                 attribute: filterAttribute(str.slice(start, end + 1), TOKEN_RULE[typeNum].filterRule)
             };
 
@@ -143,7 +154,7 @@ function trim(str, start = 0, end = str.length - 1) {
     while (ws.test(str[start]) && start <= end) start++;
     while (ws.test(str[end]) && end >= start) end--;
 
-    return start >= end ? '' : str.slice(start, end + 1);
+    return start > end ? '' : str.slice(start, end + 1);
 }
 
 function convertDOMTree(domTree) {
@@ -185,7 +196,7 @@ function convertToken(node, position) {
 
 // 加载插件
 const htmlParser = new HTMLParser();
-htmlParser.plugin(TablePlugin);
+// htmlParser.plugin(TablePlugin);
 
 export {
     htmlParser

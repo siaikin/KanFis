@@ -1,7 +1,7 @@
 function TablePlugin(EL_TYPE, TOKEN_RULE) {
-    EL_TYPE['td'] = 12;
-    EL_TYPE['th'] = 14;
-    EL_TYPE['tr'] = 16;
+    EL_TYPE['td'] = 14;
+    EL_TYPE['th'] = 16;
+    EL_TYPE['tr'] = 18;
     EL_TYPE['table'] = 34;
     EL_TYPE['thead'] = 36;
     EL_TYPE['tbody'] = 38;

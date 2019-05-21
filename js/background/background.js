@@ -28,16 +28,29 @@ htmlParser.toMarkdown(`
 <h5>Test H5</h5>
 <h6>Test H6</h6>
 <p>Test P start</p>
-<p><a href="www.baidu.com" title="打开百度">baidu</a></p>
+<p>
+
+
+
+</p>
+<p><a href="http://www.baidu.com" title="打开百度">baidu</a></p>
 <blockquote>
     <p>
         *asdasd
+        ### ASD
         <br>
         <code>asd</code>
     </p>
 </blockquote>
-<pre><code>
+<pre>
+    <code>
     let i = 1;
     let a = 2;
-</code></pre>
+    </code>
+    <ol>
+        <li>1</li>
+        <li>2</li>
+        <li>3</li>
+    </ol>
+</pre>
 `);
