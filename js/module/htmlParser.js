@@ -5,6 +5,7 @@ import {TablePlugin} from "./plugins/table";
 import {Lexer} from "./lexer";
 import {Parser} from "./parser";
 import {VDOMTree} from "./vdomt";
+import {Markdown} from "./markdown";
 
 function HTMLParser() {
     this.HTML = '';
@@ -30,10 +31,12 @@ Object.defineProperties(HTMLParser.prototype, {
 
 function toMarkdown(htmlStr) {
     this.HTML = trim(htmlStr);
-    const lexer = new Lexer(), parser = new Parser(), vdomtree = new VDOMTree();
+    const lexer = new Lexer(), parser = new Parser(), vdomtree = new VDOMTree(), md = new Markdown();
     let token = lexer.analysis(this.HTML);
     token = parser.analysis(token);
-    const result = vdomtree.build(token);
+    let result = vdomtree.build(token);
+    console.log(result);
+    result = md.translate(result);
     console.log(result);
     // this.DOMTree = this.buildDOMTree(this.HTML);
     // console.log(this.HTML);

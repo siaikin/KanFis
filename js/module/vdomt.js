@@ -14,7 +14,7 @@ Object.defineProperties(VDOMTree.prototype, {
  * 生成虚拟DOM树
  */
 function build(tokenArr) {
-    const rootNode = {tag: 'root', type: EL_TYPE['rootNode']}, stack = [rootNode];
+    const rootNode = {tag: 'root', type: EL_TYPE['rootNode'], position: 1}, stack = [rootNode];
     let parNode = rootNode, curNode, filterChild = [EL_TYPE['all_element']];
     console.time('virtual dom tree build');
     while ((curNode = tokenArr.pop())) {
@@ -29,18 +29,24 @@ function build(tokenArr) {
             filterChild = TOKEN_RULE[parNode.type].filterRule.children;
 
         } else if (curNode.position === 2) {        // 闭标签
+            if (curNode.type !== stack[stack.length - 1].type) {
+                throw new Error(`opening tag ${stack[stack.length - 1].tag}, closing tag ${curNode.tag}`);
+            }
             curNode = stack.pop();
             parNode = stack[stack.length - 1];
             filterChild = TOKEN_RULE[parNode.type].filterRule.children;
             if (!parNode.children) parNode.children = [];
 
-            curNode['parentNode'] = parNode;
+            curNode['parentNode']   = parNode;
+            curNode['index']        = parNode.children.length;
+
             parNode.children.push(curNode);
-
         } else if (curNode.position === 3) {        // 空标签或文本节点
-
             if (!parNode.children) parNode.children = [];
-            curNode['parentNode'] = parNode;
+
+            curNode['parentNode']   = parNode;
+            curNode['index']        = parNode.children.length;
+
             parNode.children.push(curNode);
         }
     }
@@ -56,7 +62,7 @@ function filterChildren(type, rule) {
 
 function skipNextTag(tokenArr, curNode) {
     let node, sameCount = 0;
-    for (let i = tokenArr.length - 1; i--;) {
+    for (let i = tokenArr.length; i--;) {
         node = tokenArr[i];
         if (node.type === curNode.type) {
             if (node.position === 1) sameCount++;
