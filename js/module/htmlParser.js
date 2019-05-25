@@ -32,10 +32,9 @@ Object.defineProperties(HTMLParser.prototype, {
 function toMarkdown(htmlStr) {
     this.HTML = trim(htmlStr);
     const lexer = new Lexer(), parser = new Parser(), vdomtree = new VDOMTree(), md = new Markdown();
-    let token = lexer.analysis(this.HTML);
-    token = parser.analysis(token);
-    let result = vdomtree.build(token);
-    console.log(result);
+    let result = lexer.analysis(this.HTML);
+    result = parser.analysis(result);
+    result = vdomtree.build(result);
     result = md.translate(result);
     console.log(result);
     // this.DOMTree = this.buildDOMTree(this.HTML);

@@ -22,7 +22,7 @@ function analysis(tokenArr) {
         tag     = separator ? token.slice(separator.start, separator.end) : 'textNode';                 // HTML标签名
         type    = EL_TYPE[tag] || EL_TYPE['htmlNode'];                                                  // tag对应类型
         pos     = type & 1 ? 3 : (separator.start === 1 ? 1 : 2);                                       // 标识标签位置类型（开标签: 1, 闭标签: 2, 空元素: 3）
-        attr    = pos === 1 ? filterAttribute(token, TOKEN_RULE[type].filterRule.attribute) : null;     // HTML标签属性键值对
+        attr    = pos & 1 ? filterAttribute(token, TOKEN_RULE[type].filterRule.attribute) : null;     // HTML标签属性键值对
         content = type === 1 ? token : null;                                                            // 文本节点特有，保存节点内容
 
         obj = {

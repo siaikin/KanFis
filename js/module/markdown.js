@@ -11,7 +11,7 @@ Object.defineProperties(Markdown.prototype, {
 });
 
 function translate(vdomt) {
-    const stack = [], textStack = [];
+    const stack = [], scopeChain = [];
     let curNode = vdomt, children, result = '';
     console.time('markdown text');
     while (curNode !== vdomt || curNode.children.length > 0) {

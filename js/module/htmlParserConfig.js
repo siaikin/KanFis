@@ -1,7 +1,21 @@
+import {Tools} from "./tools";
+
 const REGEXP = {
     whitespace: /\s/,
+    tag: /<\S+>/g,
     attribute: /[a-zA-Z0-9\-]+=[^\s>]+/g,
-    escapeChar: /([\\`*_{}\[\]()#+\-.!])/g
+    escapeMdChar: /([\\`*_{}\[\]()#+\-.!])/g,           // 转义Markdown保留字符
+    unescapeHTMLEntry: /&(amp|lt|gt|quot|nbsp);/g       // 反转义HTML实体的保留字符
+};
+/**
+ * [HTML保留字符]{@link https://developer.mozilla.org/en-US/docs/Glossary/Entity#Reserved_characters}
+ */
+const RESERVED_CHAR_MAP = {
+    '&amp;': '&',
+    '&lt;': '<',
+    '&gt;': '>',
+    '&quot;': '"',
+    '&nbsp;': ' '
 };
 const EL_TYPE = {
     'rootNode': -4,
@@ -88,7 +102,7 @@ const TOKEN_RULE = {
     [EL_TYPE['htmlNode']]: {
         filterRule: {
             attribute: [],
-            children: []
+            children: [EL_TYPE['all_element']]
         },
         convertRule: function (node) {
             return `<${node.tag}>`;
@@ -104,9 +118,18 @@ const TOKEN_RULE = {
             children: []
         },
         convertRule: function (node) {
-            const content = node.content;
+            let content = node.content, spaceInfo;
             // 转换需要转义的字符
             // return (node.isHTML || node.isCode) ? content : content.replace(REGEXP.escapeChar, '\\$1');
+            content = content.replace(REGEXP.unescapeHTMLEntry, function (match) {
+                return RESERVED_CHAR_MAP[match] || '';
+            });
+
+            if (node.parentNode.type === EL_TYPE['strong']) {
+                content = Tools.trim(content);
+            } else {
+                content = Tools.compressWs(content);
+            }
             return content;
         },
         endRule: function (node) {
@@ -206,7 +229,10 @@ const TOKEN_RULE = {
     [EL_TYPE['code']]: {
         filterRule: {
             attribute: [],
-            children: [EL_TYPE['all_element']]
+            children: {
+                include: [EL_TYPE['textNode']],
+                filter: true
+            }
         },
         convertRule: function (node) {
             return `${node.parentNode.type === EL_TYPE['pre'] ? '```\n' : '`'}`;
